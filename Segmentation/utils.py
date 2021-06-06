@@ -19,7 +19,8 @@ def computeAccuracy( pred, labelIndexBatch, maskBatch, numClasses = 21 ):
     sumim = gt * numClasses + pred
     sumim = sumim[mask != 0].squeeze()
 
-    histIm, _ = np.histogram(sumim, np.arange(numClasses * numClasses ) )
+#     histIm, _ = np.histogram(sumim, np.arange(numClasses * numClasses ) )
+    histIm, _ = np.histogram(sumim, np.arange(numClasses * numClasses + 1 ) )
     hist[0:len(histIm ) ] += histIm
 
     return hist.reshape(numClasses, numClasses )
@@ -54,4 +55,4 @@ def save_label(label, mask, cmap, name, nrows, ncols ):
     outputImage = (np.clip(outputImage, 0, 1) * 255).astype(np.float32 )
     cv2.imwrite(name, outputImage[:, :, ::-1] )
 
-    return
+    return outputImage[:, :, ::-1]

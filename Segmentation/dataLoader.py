@@ -25,7 +25,7 @@ class BatchLoader(Dataset ):
         self.count = len(self.imgNames )
         self.perm = list(range(self.count ) )
         random.shuffle(self.perm )
-        print('Image Num: %d' % self.count )
+        print('Image Number: %d' % self.count )
 
         # If image height and width are None
         # do not do any cropping
@@ -67,13 +67,13 @@ class BatchLoader(Dataset ):
             mask = mask[:, rs:rs+self.imHeight, cs:cs+self.imWidth ]
 
         ## Load data
-        # im: input immage batch, Nx3ximHeightximWidth
-        # label: binary label of 21 classe, Nx21ximHeightximWidth
+        # image: input image batch, Nx3ximHeightximWidth
+        # label: binary label of 21 classes, Nx21ximHeightximWidth
         # labelIndex: label of 21 classes, Nx1ximHeightximWidth
         # mask: mask of valid region, Nx1ximHeightximWidth
 
         batchDict = {
-                'im' : im,
+                'image' : im,
                 'label': label,
                 'labelIndex': labelIndex,
                 'mask': mask

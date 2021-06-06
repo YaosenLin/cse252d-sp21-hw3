@@ -19,7 +19,7 @@ parser.add_argument('--labelRoot', default='/datasets/cse152-252-sp20-public/hw3
 parser.add_argument('--fileList', default='/datasets/cse152-252-sp20-public/hw3_data/VOCdevkit/VOC2012/ImageSets/Segmentation/val.txt', help='path to input images' )
 parser.add_argument('--experiment', default='test', help='the path to store sampled images and models' )
 parser.add_argument('--modelRoot', default='checkpoint', help='the path to store the testing results')
-parser.add_argument('--epochId', type=int, default=210, help='the number of epochs being trained')
+parser.add_argument('--epochId', type=int, default=119, help='the number of epochs being trained')
 parser.add_argument('--batchSize', type=int, default=1, help='the size of a batch' )
 parser.add_argument('--numClasses', type=int, default=21, help='the number of classes' )
 parser.add_argument('--isDilation', action='store_true', help='whether to use dialated model or not' )
@@ -40,11 +40,13 @@ if opt.isSpp == True :
     opt.isDilation = False
 
 if opt.isDilation:
-    opt.experiment += '_dilation'
-    opt.modelRoot += '_dilation'
+    # opt.experiment += '_dilation'
+    # opt.modelRoot += '_dilation'
+    pass
 if opt.isSpp:
-    opt.experiment += '_spp'
-    opt.modelRoot += '_spp'
+    # opt.experiment += '_spp'
+    # opt.modelRoot += '_spp'
+    pass
 
 # Save all the codes
 os.system('mkdir %s' % opt.experiment )
@@ -95,7 +97,7 @@ segDataset = dataLoader.BatchLoader(
         labelRoot = opt.labelRoot,
         fileList = opt.fileList
         )
-segLoader = DataLoader(segDataset, batch_size=opt.batchSize, num_workers=0, shuffle=True )
+segLoader = DataLoader(segDataset, batch_size=opt.batchSize, num_workers=0, shuffle=False)
 
 lossArr = []
 iteration = 0
@@ -103,11 +105,13 @@ epoch = opt.epochId
 confcounts = np.zeros( (opt.numClasses, opt.numClasses), dtype=np.int64 )
 accuracy = np.zeros(opt.numClasses, dtype=np.float32 )
 testingLog = open('{0}/testingLog_{1}.txt'.format(opt.experiment, epoch), 'w')
+count_21 = 0
+all_labels = set()
 for i, dataBatch in enumerate(segLoader ):
     iteration += 1
 
     # Read data
-    imBatch = Variable(dataBatch['im']).to(device)
+    imBatch = Variable(dataBatch['image']).to(device)
     labelBatch = Variable(dataBatch['label']).to(device)
     labelIndexBatch = Variable(dataBatch['labelIndex']).to(device)
     maskBatch = Variable(dataBatch['mask']).to(device)
@@ -116,6 +120,12 @@ for i, dataBatch in enumerate(segLoader ):
     x1, x2, x3, x4, x5 = encoder(imBatch )
     pred = decoder(imBatch, x1, x2, x3, x4, x5 )
 
+    lidx = labelIndexBatch.cpu().numpy()
+    all_labels.update(set(lidx.flatten().tolist()))
+    valid = np.where(lidx == 20)
+    count_21 += valid[0].shape[0]
+    
+    
     # Compute mean IOU
     loss = torch.mean( pred * labelBatch )
     hist = utils.computeAccuracy(pred, labelIndexBatch, maskBatch )
@@ -147,5 +157,7 @@ for i, dataBatch in enumerate(segLoader ):
         utils.save_label(-pred.data, maskBatch.data, colormap, '%s/labelPred_%d.png' % (opt.experiment, iteration ), nrows=1, ncols=1 )
 
 testingLog.close()
+print('21', count_21)
+print('labels', all_labels)
 # Save the accuracy
 np.save('%s/accuracy_%d.npy' % (opt.experiment, opt.epochId), accuracy )
